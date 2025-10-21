@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kintsugi Blade - The Heart That Repairs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #d4af37;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            color: #c0c0c0;
+            font-style: italic;
+        }
+
+        .reader-container {
+            background: #1a1a1a;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .page-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 600px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .page-display img {
+            max-width: 100%;
+            max-height: 80vh;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.3s ease;
+        }
+
+        .page-display img.fade {
+            opacity: 0;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #d4af37 0%, #b8941e 100%);
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #e5c04a 0%, #c9a52f 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(212, 175, 55, 0.5);
+        }
+
+        .nav-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .nav-button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+            box-shadow: none;
+        }
+
+        .page-info {
+            text-align: center;
+            font-size: 1.1em;
+            color: #d4af37;
+            font-weight: bold;
+            padding: 10px 20px;
+            background: #2a2a2a;
+            border-radius: 5px;
+            min-width: 150px;
+        }
+
+        .keyboard-hint {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #888;
+            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            color: #d4af37;
+            font-size: 1.2em;
+            padding: 40px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .nav-button {
+                width: 100%;
+            }
+
+            .page-info {
+                order: -1;
+            }
+        }
+
+        .nav-buttons-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons-container {
+                width: 100%;
+                gap: 10px;
+            }
+
+            .nav-button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Kintsugi Blade</h1>
+        <div class="subtitle">修復の心 - The Heart That Repairs</div>
+    </div>
+
+    <div class="reader-container">
+        <div class="page-display" id="pageDisplay">
+            <div class="loading">Loading...</div>
+        </div>
+
+        <div class="controls">
+            <button class="nav-button" id="prevBtn" onclick="previousPage()">← Previous</button>
+            <div class="page-info" id="pageInfo">Page 1 of 13</div>
+            <button class="nav-button" id="nextBtn" onclick="nextPage()">Next →</button>
+        </div>
+
+        <div class="keyboard-hint">
+            Use arrow keys or swipe to navigate
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const totalPages = 13;
+        const pages = [];
+
+        // Preload all images
+        for (let i = 1; i <= totalPages; i++) {
+            const img = new Image();
+            img.src = `kin${i}.png`;
+            pages.push(img);
+        }
+
+        function displayPage(pageNum) {
+            const pageDisplay = document.getElementById('pageDisplay');
+            const pageInfo = document.getElementById('pageInfo');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // Fade out current image
+            const currentImg = pageDisplay.querySelector('img');
+            if (currentImg) {
+                currentImg.classList.add('fade');
+                setTimeout(() => {
+                    pageDisplay.innerHTML = '';
+                    const newImg = pages[pageNum - 1].cloneNode();
+                    newImg.alt = `Page ${pageNum}`;
+                    pageDisplay.appendChild(newImg);
+                    setTimeout(() => newImg.classList.remove('fade'), 10);
+                }, 150);
+            } else {
+                pageDisplay.innerHTML = '';
+                const newImg = pages[pageNum - 1].cloneNode();
+                newImg.alt = `Page ${pageNum}`;
+                pageDisplay.appendChild(newImg);
+            }
+
+            // Update page info
+            pageInfo.textContent = `Page ${pageNum} of ${totalPages}`;
+
+            // Update button states
+            prevBtn.disabled = pageNum === 1;
+            nextBtn.disabled = pageNum === totalPages;
+
+            currentPage = pageNum;
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                displayPage(currentPage + 1);
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                displayPage(currentPage - 1);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                nextPage();
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                previousPage();
+            }
+        });
+
+        // Touch swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchStartX - touchEndX > swipeThreshold) {
+                nextPage();
+            } else if (touchEndX - touchStartX > swipeThreshold) {
+                previousPage();
+            }
+        }
+
+        // Initialize first page
+        window.addEventListener('load', () => {
+            displayPage(1);
+        });
+    </script>
+</body>
+</html>
